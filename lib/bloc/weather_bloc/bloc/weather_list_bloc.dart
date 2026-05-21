@@ -4,7 +4,6 @@ import 'package:weather_api/models/weather_model.dart';
 
 import '../../../Api/weather_api.dart';
 
-
 part 'weather_list_event.dart';
 part 'weather_list_state.dart';
 
@@ -18,18 +17,25 @@ class WeatherListBloc extends Bloc<WeatherListEvent, WeatherListState> {
       emit(WeatherListBlocLoading());
 
       try {
-        weatherModel = await weatherListApi.getweather();
+        final weather = await weatherListApi.getweather();
 
-        print('**********************************');
-
-        emit(WeatherListBlocLoaded(weatherModel));
-
-        print('************Loaded*************');
+        emit(WeatherListBlocLoaded(weather));
       } catch (e) {
         print("ERROR: $e");
 
         emit(WeatherListBlocError());
       }
     });
+    on<SearchWeatherEvent>((event, emit) async {
+      emit(WeatherListBlocLoading());
+      try {
+        final weather = await weatherListApi.getWeatherByCity(event.city);
+        emit(WeatherListBlocLoaded(weather));
+      } catch (e ) {
+        print("SEARCH ERROR: $e");
+      }
+    }
+    
+    );
   }
 }

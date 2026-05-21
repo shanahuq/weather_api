@@ -10,23 +10,26 @@ class WeatherListApi {
   ApiClient apiClient = ApiClient();
 
   Future<WeatherModel> getweather() async {
-    await Geolocator.requestPermission();
+    LocationPermission permission = await Geolocator.requestPermission();
+
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      throw ApiException("Location permission denied", 403);
+    }
     Position position = await Geolocator.getCurrentPosition(
-     desiredAccuracy: LocationAccuracy.high 
+      desiredAccuracy: LocationAccuracy.high,
     );
     final lat = position.latitude;
     final lon = position.longitude;
     String url =
-        "https://open-weather13.p.rapidapi.com/city/latlon?latitude=$lat&longitude=$lon";
+        "https://open-weather13.p.rapidapi.com/city?city=delhi&lang=EN";
 
-    Response response =
-        await apiClient.invokeAPI(url, "GET", null);
+    Response response = await apiClient.invokeAPI(url, "GET", null);
 
     print(response.body);
 
     if (response.statusCode == 200) {
-      Map<String, dynamic> jsonMap =
-          json.decode(response.body);
+      Map<String, dynamic> jsonMap = json.decode(response.body);
 
       return WeatherModel.fromJson(jsonMap);
     } else {
@@ -34,6 +37,23 @@ class WeatherListApi {
 
       throw ApiException(
         'Error : ${errorBody['message'] ?? 'Unknown error'}',
+        response.statusCode,
+      );
+    }
+  }
+
+
+
+  Future<WeatherModel> getWeatherByCity(String city) async {
+    String url =
+        "https://open-weather13.p.rapidapi.com/city?city=$city&lang=EN";
+    Response response = await apiClient.invokeAPI(url, "GET", null);
+    if (response.statusCode == 200) {
+      return WeatherModel.fromJson(jsonDecode(response.body));
+    } else {
+      final errorBody = jsonDecode(response.body);
+      throw ApiException(
+        errorBody['message'] ?? "Unknown error",
         response.statusCode,
       );
     }

@@ -12,11 +12,22 @@ class WeatherUi extends StatefulWidget {
 }
 
 class _WeatherUiState extends State<WeatherUi> {
+  final TextEditingController _searchController = TextEditingController();
+  double fahrenheitToCelsius(double f) {
+    return (f - 32) * 5 / 9;
+  }
+
   @override
   void initState() {
     super.initState();
 
     context.read<WeatherListBloc>().add(FetchWeatherListEvent());
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -62,8 +73,14 @@ class _WeatherUiState extends State<WeatherUi> {
                 final weather = state.weatherModel;
 
                 final weatherData = weather.weather?.first;
+                final tempF = weather.main?.temp ?? 0;
+                final tempC = fahrenheitToCelsius(tempF);
 
-                final icon = weatherData?.icon ?? "01d";
+                final feelsF = weather.main?.feelsLike ?? 0;
+                final feelsC = fahrenheitToCelsius(feelsF);
+
+                final minF = weather.main?.tempMin ?? 0;
+                final maxF = weather.main?.tempMax ?? 0;
 
                 return SingleChildScrollView(
                   child: Padding(
@@ -76,12 +93,68 @@ class _WeatherUiState extends State<WeatherUi> {
                       children: [
                         SizedBox(height: 20.h),
 
-                        /// LOCATION
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _searchController,
+                                style: TextStyle(color: Colors.white),
+                                decoration: InputDecoration(
+                                  hintText: "Search City.....",
+                                  hintStyle: TextStyle(color: Colors.white70),
+                                  filled: true,
+                                  fillColor: Colors.white.withOpacity(0.2),
+                                  prefixIcon: Icon(
+                                    Icons.search,
+                                    color: Colors.white,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(15.r),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 10.w),
+                            InkWell(
+                              onTap: () {
+                                final city = _searchController.text.trim();
+                                if (city.isNotEmpty) {
+                                  context.read<WeatherListBloc>().add(
+                                    SearchWeatherEvent(city),
+                                  );
+                                }
+                              },
+                              child: Container(
+                                padding: EdgeInsets.all(10.w),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.3),
+                                  borderRadius: BorderRadius.circular(12.r),
+                                ),
+                                child: Text(
+                                  'Done',
+                                  style: TextStyle(
+                                    color: const Color.fromARGB(
+                                      255,
+                                      255,
+                                      255,
+                                      255,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 25.h),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.location_on, color: Colors.white),
-
+                            Icon(
+                              Icons.location_on,
+                              color: Colors.white,
+                              size: 25.sp,
+                            ),
                             SizedBox(width: 5.w),
 
                             Text(
@@ -93,6 +166,24 @@ class _WeatherUiState extends State<WeatherUi> {
                               ),
                             ),
                           ],
+                        ),
+
+                        SizedBox(height: 10.h),
+
+                        Text(
+                          "Lat : ${weather.coord?.lat?.toStringAsFixed(2)}",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16.sp,
+                          ),
+                        ),
+
+                        Text(
+                          "Lon : ${weather.coord?.lon?.toStringAsFixed(2)}",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16.sp,
+                          ),
                         ),
 
                         SizedBox(height: 10.h),
@@ -109,7 +200,7 @@ class _WeatherUiState extends State<WeatherUi> {
                         SizedBox(height: 25.h),
 
                         /// WEATHER ICON
-                        Image.network(
+                        Image.asset(
                           "assets/images (14).jpg",
                           width: 180.w,
                           height: 180.h,
@@ -117,8 +208,8 @@ class _WeatherUiState extends State<WeatherUi> {
                         ),
 
                         /// TEMPERATURE
-                        Text(
-                          "${weather.main?.temp?.toStringAsFixed(1) ?? "--"}°C",
+                         Text(
+                          "${tempC.toStringAsFixed(1)}°C",
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 65.sp,

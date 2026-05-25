@@ -22,7 +22,7 @@ class WeatherListApi {
     final lat = position.latitude;
     final lon = position.longitude;
     String url =
-        "https://open-weather13.p.rapidapi.com/city?city=delhi&lang=EN";
+        "https://open-weather13.p.rapidapi.com/city?city=malappuram&lang=EN";
 
     Response response = await apiClient.invokeAPI(url, "GET", null);
 

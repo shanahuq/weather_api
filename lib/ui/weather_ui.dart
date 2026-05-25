@@ -208,8 +208,8 @@ class _WeatherUiState extends State<WeatherUi> {
                         ),
 
                         /// TEMPERATURE
-                         Text(
-                          "${tempC.toStringAsFixed(1)}°C",
+                        Text(
+                          "${tempC.round()}°C",
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 65.sp,
